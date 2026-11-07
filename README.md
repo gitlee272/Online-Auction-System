@@ -130,4 +130,3 @@ Hướng dẫn chạy server và client sẽ được bổ sung khi hai phần n
 - [ ] Đặt giá đồng thời an toàn và realtime update
 - [ ] Tính năng nâng cao (auto-bid, anti-sniping, biểu đồ giá)
 - [ ] Báo cáo và slide
- 45300e7 (docs: complete README)

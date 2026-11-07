@@ -1,6 +1,4 @@
 # Online Auction System
-
-<<<<<<< HEAD
 Bài tập lớn Lập trình nâng cao: hệ thống đấu giá trực tuyến (Java, JavaFX, Socket, Maven).
 
 ## Cấu trúc

@@ -26,7 +26,7 @@ Bài tập lớn Lập trình nâng cao: hệ thống đấu giá trực tuyến
 | Nguyễn Văn Trường | Truongk7hehe |  |
 | Nguyễn Hải Đăng | Dangk97 |  |
 | Phạm Minh Khôi | khoip5786-lang |  |
-=======
+
 ![CI](https://github.com/gitlee272/Online-Auction-System/actions/workflows/ci.yml/badge.svg)
 
 Bài tập lớn môn Lập trình nâng cao: hệ thống đấu giá trực tuyến theo kiến trúc Client–Server (Java, JavaFX, Socket, Maven).

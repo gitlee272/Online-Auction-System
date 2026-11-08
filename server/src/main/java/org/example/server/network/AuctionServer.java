@@ -1,4 +1,6 @@
 package org.example.server.network;
+import org.example.server.db.DatabaseInitializer;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -42,6 +44,7 @@ public class AuctionServer {
     
     // Hàm main để test chạy server độc lập
     public static void main(String[] args) {
+        DatabaseInitializer.initialize();
         new AuctionServer().start();
     }
 }

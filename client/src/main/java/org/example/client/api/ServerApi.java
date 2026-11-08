@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.example.client.model.AuctionSummary;
 import org.example.client.model.UserSession;
+import org.example.client.model.AuctionDetail;
 
 /**
  * Hợp đồng giữa giao diện và server. Controller chỉ gọi interface này, nên đổi từ
@@ -18,4 +19,8 @@ public interface ServerApi {
             String username, String password, String email, String role);
 
     CompletableFuture<List<AuctionSummary>> listAuctions();
+    CompletableFuture<AuctionDetail> getAuction(long auctionId);
+
+    /** Đặt giá. Trả về chi tiết phiên sau khi đặt. Ném ApiException BID_TOO_LOW, AUCTION_CLOSED. */
+    CompletableFuture<AuctionDetail> placeBid(long auctionId, long amount);
 }

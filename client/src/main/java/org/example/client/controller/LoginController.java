@@ -50,7 +50,10 @@ public class LoginController {
                                             SceneNavigator.goTo("main.fxml");
                                         }));
     }
-
+    @FXML
+    private void onRegister() {
+        SceneNavigator.goTo("register.fxml");
+    }
     private static String readableMessage(Throwable error) {
         Throwable cause = error instanceof CompletionException && error.getCause() != null
                 ? error.getCause()

@@ -5,54 +5,37 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Auction {
-    private int id;
-    private Item item; // Sản phẩm được đấu giá
+public class Auction extends Entity {
+    private int itemId;
+    private double currentHighestBid;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private AuctionStatus status;
-    private List<Bid> bidHistory; // Danh sách các lượt trả giá
-    private Integer winnerId; // ID người chiến thắng (null nếu chưa kết thúc)
+    private List<BidTransaction> bidHistory;
+    private Integer winnerId;
 
-    public Auction() {
-        this.bidHistory = new ArrayList<>();
-        this.status = AuctionStatus.OPEN;
-    }
-
-    public Auction(int id, Item item, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(int id, int itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         this.id = id;
-        this.item = item;
+        this.itemId = itemId;
+        this.currentHighestBid = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.status = AuctionStatus.OPEN;
+        this.status = AuctionStatus.PENDING;
         this.bidHistory = new ArrayList<>();
     }
 
-    // Thêm một lượt đặt giá mới vào lịch sử
-    public void addBid(Bid bid) {
+    public void addBid(BidTransaction bid) {
         this.bidHistory.add(bid);
+        if (bid.getBidAmount() > this.currentHighestBid) {
+            this.currentHighestBid = bid.getBidAmount();
+        }
     }
 
-    // Lấy mức giá cao nhất hiện tại
-    public double getHighestBidAmount() {
-        if (bidHistory.isEmpty()) {
-            return item.getStartingPrice();
-        }
-        double highest = item.getStartingPrice();
-        for (Bid b : bidHistory) {
-            if (b.getAmount() > highest) {
-                highest = b.getAmount();
-            }
-        }
-        return highest;
-    }
+    public int getItemId() { return itemId; }
+    public void setItemId(int itemId) { this.itemId = itemId; }
 
-    // --- Getters & Setters ---
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
+    public double getCurrentHighestBid() { return currentHighestBid; }
+    public void setCurrentHighestBid(double currentHighestBid) { this.currentHighestBid = currentHighestBid; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
@@ -63,10 +46,12 @@ public class Auction {
     public AuctionStatus getStatus() { return status; }
     public void setStatus(AuctionStatus status) { this.status = status; }
 
-    public List<Bid> getBidHistory() { return bidHistory; }
-    public void setBidHistory(List<Bid> bidHistory) { this.bidHistory = bidHistory; }
+    public List<BidTransaction> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<BidTransaction> bidHistory) { this.bidHistory = bidHistory; }
 
     public Integer getWinnerId() { return winnerId; }
     public void setWinnerId(Integer winnerId) { this.winnerId = winnerId; }
 }
+
+
 

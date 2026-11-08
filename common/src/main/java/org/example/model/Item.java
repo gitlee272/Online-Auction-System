@@ -2,13 +2,12 @@ package org.example.model;
 
 import org.example.enums.ItemCondition;
 
-public class Item {
-    private int id;
+public class Item extends Entity {
     private String name;
     private String description;
     private double startingPrice;
     private ItemCondition condition;
-    private int sellerId; // ID của người bán (Seller)
+    private int sellerId;
 
     public Item() {}
 
@@ -20,10 +19,6 @@ public class Item {
         this.condition = condition;
         this.sellerId = sellerId;
     }
-
-    // --- Getters & Setters ---
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -40,4 +35,3 @@ public class Item {
     public int getSellerId() { return sellerId; }
     public void setSellerId(int sellerId) { this.sellerId = sellerId; }
 }
-

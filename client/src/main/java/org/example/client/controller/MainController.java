@@ -22,7 +22,7 @@ import org.example.client.model.AuctionSummary;
 import org.example.client.model.UserSession;
 import org.example.client.util.SceneNavigator;
 import org.example.client.util.SessionContext;
-
+import org.example.client.util.SelectedAuction;
 /** Trang chính: danh sách phiên đấu giá, có lọc theo trạng thái và tìm theo tên. */
 public class MainController implements Initializable {
 
@@ -61,6 +61,14 @@ public class MainController implements Initializable {
         statusFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
 
         onRefresh();
+        // Nhấp đúp một dòng để mở chi tiết phiên.
+        auctionTable.setOnMouseClicked(e -> {
+            AuctionSummary row = auctionTable.getSelectionModel().getSelectedItem();
+            if (e.getClickCount() == 2 && row != null) {
+                SelectedAuction.set(row.id());
+                SceneNavigator.goTo("auction-detail.fxml");
+            }
+        });
     }
 
     @FXML

@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import org.example.client.model.AuctionSummary;
 import org.example.client.model.UserSession;
 import org.example.client.model.AuctionDetail;
-
+import org.example.client.model.NewAuctionRequest;
 /**
  * Hợp đồng giữa giao diện và server. Controller chỉ gọi interface này, nên đổi từ
  * MockServerApi sang SocketServerApi mà không phải sửa controller.
@@ -23,4 +23,6 @@ public interface ServerApi {
 
     /** Đặt giá. Trả về chi tiết phiên sau khi đặt. Ném ApiException BID_TOO_LOW, AUCTION_CLOSED. */
     CompletableFuture<AuctionDetail> placeBid(long auctionId, long amount);
+    /** Tạo phiên đấu giá mới (chỉ Seller). Trả về id phiên. */
+    CompletableFuture<Long> createAuction(NewAuctionRequest request);
 }

@@ -22,6 +22,7 @@
         <Label text="Phiên đấu giá" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Label fx:id="welcomeLabel"/>
+        <Button fx:id="createButton" text="+ Tạo phiên" onAction="#onCreateAuction"/>
         <Button text="Đăng xuất" onAction="#onLogout"/>
     </HBox>
 

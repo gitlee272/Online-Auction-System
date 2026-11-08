@@ -19,6 +19,7 @@
     <Label fx:id="errorLabel" style="-fx-text-fill: red;" wrapText="true"/>
     <Button fx:id="loginButton" text="Đăng nhập" maxWidth="Infinity" defaultButton="true"
             onAction="#onLogin"/>
+    <Button text="Chưa có tài khoản? Đăng ký" onAction="#onRegister"/>
     <Label text="Thử: mật khẩu luôn là 123456. Tên đăng nhập seller1 hoặc admin1 để đổi vai trò."
            style="-fx-font-size: 11px; -fx-text-fill: gray;" wrapText="true"/>
 </VBox>

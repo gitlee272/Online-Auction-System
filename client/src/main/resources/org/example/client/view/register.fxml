@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="12" maxWidth="360" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.client.controller.RegisterController">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="Đăng ký" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    <TextField fx:id="usernameField" promptText="Tên đăng nhập"/>
+    <TextField fx:id="emailField" promptText="Email"/>
+    <PasswordField fx:id="passwordField" promptText="Mật khẩu (tối thiểu 6 ký tự)"/>
+    <PasswordField fx:id="confirmField" promptText="Nhập lại mật khẩu"/>
+    <ComboBox fx:id="roleBox" maxWidth="Infinity"/>
+    <Label fx:id="errorLabel" style="-fx-text-fill: red;" wrapText="true"/>
+    <Button fx:id="registerButton" text="Đăng ký" maxWidth="Infinity" defaultButton="true"
+            onAction="#onRegister"/>
+    <Button text="Đã có tài khoản? Đăng nhập" onAction="#onBack"/>
+</VBox>

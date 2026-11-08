@@ -1,6 +1,8 @@
 package service;
 
 import dao.UserDao;
+import exception.AuthenticationException;
+import exception.UserAlreadyExistsException;
 import model.User;
 import payload.AuthResponse;
 import payload.LoginRequest;
@@ -13,33 +15,33 @@ public class AuthService {
         this.userDao = userDao;
     }
 
-    // Xử lý logic Đăng nhập
-    public AuthResponse login(LoginRequest request) {
+    // Xử lý Đăng nhập với AuthenticationException
+    public AuthResponse login(LoginRequest request) throws AuthenticationException {
         if (request == null || request.getUsername() == null || request.getPassword() == null) {
-            return new AuthResponse(false, "Dữ liệu đăng nhập không hợp lệ!", null);
+            throw new AuthenticationException("Dữ liệu đăng nhập không hợp lệ!");
         }
 
         Optional<User> userOpt = userDao.findByUsername(request.getUsername());
         if (userOpt.isEmpty()) {
-            return new AuthResponse(false, "Tài khoản không tồn tại!", null);
+            throw new AuthenticationException("Tài khoản không tồn tại!");
         }
 
         User user = userOpt.get();
         if (!user.getPassword().equals(request.getPassword())) {
-            return new AuthResponse(false, "Mật khẩu không chính xác!", null);
+            throw new AuthenticationException("Mật khẩu không chính xác!");
         }
 
         return new AuthResponse(true, "Đăng nhập thành công!", user);
     }
 
-    // Xử lý logic Đăng ký
-    public AuthResponse register(User newUser) {
+    // Xử lý Đăng ký với UserAlreadyExistsException
+    public AuthResponse register(User newUser) throws UserAlreadyExistsException, AuthenticationException {
         if (newUser == null || newUser.getUsername() == null || newUser.getPassword() == null) {
-            return new AuthResponse(false, "Thông tin đăng ký không hợp lệ!", null);
+            throw new AuthenticationException("Thông tin đăng ký không hợp lệ!");
         }
 
         if (userDao.findByUsername(newUser.getUsername()).isPresent()) {
-            return new AuthResponse(false, "Tên tài khoản đã tồn tại!", null);
+            throw new UserAlreadyExistsException("Tên tài khoản '" + newUser.getUsername() + "' đã tồn tại!");
         }
 
         userDao.save(newUser);

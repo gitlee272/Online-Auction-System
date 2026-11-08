@@ -8,6 +8,7 @@ import org.example.client.model.AuctionDetail;
 import org.example.client.model.BidEntry;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import org.example.client.model.NewAuctionRequest;
 
 /** Cài đặt giả: trả dữ liệu cứng, giả lập độ trễ mạng. Dùng khi server chưa xong. */
 public class MockServerApi implements ServerApi {
@@ -100,5 +101,17 @@ public class MockServerApi implements ServerApi {
         return new AuctionDetail(auctionId, "iPhone 15 Pro", "Máy mới 99%, đầy đủ phụ kiện.",
                 "Electronics", START, mockPrice, mockLeader, "RUNNING",
                 LocalDateTime.now().plusMinutes(3), List.copyOf(mockBids));
+    }
+    @Override
+    public CompletableFuture<Long> createAuction(NewAuctionRequest request) {
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    sleep();
+                    String role = org.example.client.util.SessionContext.get().role();
+                    if (!"SELLER".equals(role)) {
+                        throw new ApiException("NOT_AUTHORIZED", "Chỉ Seller mới được tạo phiên đấu giá");
+                    }
+                    return 100L;
+                });
     }
 }

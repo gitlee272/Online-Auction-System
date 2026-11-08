@@ -23,6 +23,8 @@ import org.example.client.model.UserSession;
 import org.example.client.util.SceneNavigator;
 import org.example.client.util.SessionContext;
 import org.example.client.util.SelectedAuction;
+import javafx.scene.control.Button;
+
 /** Trang chính: danh sách phiên đấu giá, có lọc theo trạng thái và tìm theo tên. */
 public class MainController implements Initializable {
 
@@ -37,6 +39,7 @@ public class MainController implements Initializable {
     @FXML private TableColumn<AuctionSummary, String> priceColumn;
     @FXML private TableColumn<AuctionSummary, String> statusColumn;
     @FXML private TableColumn<AuctionSummary, String> endColumn;
+    @FXML private Button createButton;
 
     private final ObservableList<AuctionSummary> auctions = FXCollections.observableArrayList();
     private final FilteredList<AuctionSummary> filtered = new FilteredList<>(auctions, a -> true);
@@ -45,7 +48,9 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         UserSession session = SessionContext.get();
         welcomeLabel.setText("Xin chào " + session.username() + " (" + session.role() + ")");
-
+        boolean isSeller = "SELLER".equals(session.role());
+        createButton.setVisible(isSeller);
+        createButton.setManaged(isSeller);   // ẩn thì không chiếm chỗ
         nameColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().itemName()));
         priceColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().priceText()));
         statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().status()));
@@ -113,5 +118,9 @@ public class MainController implements Initializable {
                 ? error.getCause()
                 : error;
         return cause instanceof ApiException ? cause.getMessage() : "Không thể kết nối tới máy chủ";
+    }
+    @FXML
+    private void onCreateAuction() {
+        SceneNavigator.goTo("create-auction.fxml");
     }
 }

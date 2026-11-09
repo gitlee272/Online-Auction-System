@@ -40,6 +40,7 @@ public class MainController implements Initializable {
     @FXML private TableColumn<AuctionSummary, String> statusColumn;
     @FXML private TableColumn<AuctionSummary, String> endColumn;
     @FXML private Button createButton;
+    @FXML private Button adminButton;
 
     private final ObservableList<AuctionSummary> auctions = FXCollections.observableArrayList();
     private final FilteredList<AuctionSummary> filtered = new FilteredList<>(auctions, a -> true);
@@ -51,6 +52,9 @@ public class MainController implements Initializable {
         boolean isSeller = "SELLER".equals(session.role());
         createButton.setVisible(isSeller);
         createButton.setManaged(isSeller);   // ẩn thì không chiếm chỗ
+        boolean isAdmin = "ADMIN".equals(session.role());
+        adminButton.setVisible(isAdmin);
+        adminButton.setManaged(isAdmin);
         nameColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().itemName()));
         priceColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().priceText()));
         statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().status()));
@@ -122,5 +126,9 @@ public class MainController implements Initializable {
     @FXML
     private void onCreateAuction() {
         SceneNavigator.goTo("create-auction.fxml");
+    }
+    @FXML
+    private void onAdmin() {
+        SceneNavigator.goTo("admin.fxml");
     }
 }

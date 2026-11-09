@@ -23,6 +23,7 @@
         <Region HBox.hgrow="ALWAYS"/>
         <Label fx:id="welcomeLabel"/>
         <Button fx:id="createButton" text="+ Tạo phiên" onAction="#onCreateAuction"/>
+        <Button fx:id="adminButton" text="Quản trị" onAction="#onAdmin"/>
         <Button text="Đăng xuất" onAction="#onLogout"/>
     </HBox>
 

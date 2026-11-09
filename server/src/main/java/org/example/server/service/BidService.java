@@ -36,6 +36,10 @@ public class BidService {
         autoBid.setBidAmount(nextBidAmount);
         autoBid.setBidTime(LocalDateTime.now());
 
-        return bidDAO.addBid(autoBid);
+        boolean success = bidDAO.addBid(autoBid);
+        if (success) {
+            System.out.println("[BidService] Đặt giá tự động thành công cho User #" + bidderId + " với số tiền: " + nextBidAmount);
+        }
+        return success;
     }
 }

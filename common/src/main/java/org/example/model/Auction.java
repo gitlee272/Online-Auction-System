@@ -1,9 +1,9 @@
 package org.example.model;
-
 import org.example.enums.AuctionStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class Auction extends Entity {
     private int itemId;
@@ -21,7 +21,7 @@ public class Auction extends Entity {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = AuctionStatus.PENDING;
-        this.bidHistory = new ArrayList<>();
+        this.bidHistory = new ArrayList<BidTransaction>();
     }
 
     public void addBid(BidTransaction bid) {
@@ -29,6 +29,8 @@ public class Auction extends Entity {
         if (bid.getBidAmount() > this.currentHighestBid) {
             this.currentHighestBid = bid.getBidAmount();
         }
+    }
+    public Auction() {
     }
 
     public int getItemId() { return itemId; }

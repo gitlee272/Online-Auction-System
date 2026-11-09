@@ -1,22 +1,23 @@
 # Giao thức Client–Server
 
-Tài liệu này là hợp đồng chung giữa client (JavaFX) và server. Muốn đổi giao thức thì phải sửa file này trong cùng Pull Request với code.
+Tài liệu này là hợp đồng chung giữa client (JavaFX) và server. Muốn đổi giao thức thì phải sửa file này trong cùng Pull Request với code và báo cả nhóm.
 
-Phiên bản: 1.0 (bản nháp, chờ Khôi duyệt)
+Phiên bản: **1.0** (chính thức)
 
 ## 1. Quy ước chung
 
 | Mục | Quy ước |
 |---|---|
-| Kênh truyền | TCP Socket, cổng mặc định `9999` |
+| Kênh truyền | TCP Socket, cổng mặc định `9999` (đọc từ cấu hình) |
 | Mã hóa | UTF-8 |
-| Khung message | Mỗi message là **một dòng JSON**, kết thúc bằng ký tự `\n`. JSON không được chứa ký tự xuống dòng thật (Gson mặc định đã đảm bảo) |
+| Khung message | Mỗi message là **một dòng JSON**, kết thúc bằng ký tự `\n`. JSON không chứa ký tự xuống dòng thật (Gson mặc định đã đảm bảo) |
 | Kết nối | Một client giữ một kết nối suốt phiên làm việc. Server có thể gửi event xuống bất cứ lúc nào |
 | Tiền | Số nguyên `long`, đơn vị đồng (VND). Không dùng số thực |
 | Thời gian | Chuỗi ISO-8601 không múi giờ, giờ của server (Asia/Ho_Chi_Minh), ví dụ `2026-11-20T20:00:00` |
 | Tên trường | `camelCase` |
 | Enum | Chuỗi viết hoa, ví dụ `RUNNING`, `BIDDER` |
 | Trường không có giá trị | `null` hoặc bỏ qua trường |
+| Độ dài tối đa một dòng | 64 KB. Dòng dài hơn bị coi là `INVALID_JSON` |
 
 ### Enum dùng chung
 
@@ -27,7 +28,7 @@ Phiên bản: 1.0 (bản nháp, chờ Khôi duyệt)
 | `itemType` | `ELECTRONICS`, `ART`, `VEHICLE` |
 | `condition` | `NEW`, `LIKE_NEW`, `USED` |
 
-Chuyển trạng thái hợp lệ: `OPEN → RUNNING → FINISHED → PAID`; `OPEN` hoặc `RUNNING` có thể sang `CANCELED`.
+Chuyển trạng thái hợp lệ: `OPEN → RUNNING → FINISHED → PAID`; `OPEN` hoặc `RUNNING` có thể sang `CANCELED`. Các chuyển khác bị từ chối.
 
 ## 2. Ba loại message
 
@@ -62,10 +63,10 @@ Lỗi:
 
 | Trường | Kiểu | Mô tả |
 |---|---|---|
-| `id` | string | Trùng `id` của request |
+| `id` | string | Trùng `id` của request. Nếu request không đọc được thì `null` |
 | `status` | string | `OK` hoặc `ERROR` |
 | `code` | string | Chỉ có khi `ERROR`, thuộc bảng mã lỗi (mục 5) |
-| `message` | string | Chỉ có khi `ERROR`. Câu tiếng Việt có thể hiển thị trực tiếp cho người dùng |
+| `message` | string | Chỉ có khi `ERROR`. Câu tiếng Việt hiển thị trực tiếp cho người dùng |
 | `data` | object | Dữ liệu kết quả (khi `OK`) hoặc thông tin bổ sung (khi `ERROR`, tùy mã lỗi) |
 
 Mỗi request có **đúng một** response. Response có thể đến không theo thứ tự gửi, client ghép theo `id`.
@@ -76,15 +77,15 @@ Mỗi request có **đúng một** response. Response có thể đến không th
 {"event":"NEW_BID","data":{"auctionId":5,"amount":1500000,"bidder":"an","time":"2026-11-20T19:59:10","endTime":"2026-11-20T20:00:00"}}
 ```
 
-Event không có `id` và client không trả lời. Chỉ client đã `SUBSCRIBE` phiên đó mới nhận event của phiên đó (xem mục 6).
+Event không có `id` và client không trả lời. Chỉ client đã `SUBSCRIBE` phiên đó mới nhận event của phiên đó (mục 6).
 
 ## 3. Xác thực và phân quyền
 
 1. Client gọi `LOGIN` (hoặc `REGISTER`), nhận `token`.
 2. Mọi action khác (trừ `PING`, `REGISTER`, `LOGIN`) phải gửi kèm `token`. Thiếu hoặc sai token thì server trả `NOT_AUTHENTICATED`.
 3. Server kiểm tra vai trò cho từng action (cột "Vai trò" ở mục 4). Sai vai trò thì trả `NOT_AUTHORIZED`.
-4. Tài khoản bị khóa không đăng nhập được (`ACCOUNT_LOCKED`) và token đang dùng bị vô hiệu.
-5. Token mất hiệu lực khi `LOGOUT` hoặc khi kết nối bị đóng.
+4. Tài khoản bị khóa không đăng nhập được (`ACCOUNT_LOCKED`) và token đang dùng của tài khoản đó bị vô hiệu.
+5. Token mất hiệu lực khi `LOGOUT` hoặc khi kết nối bị đóng. Token không hết hạn theo thời gian.
 
 Việc ẩn nút trên giao diện chỉ để tiện dùng. **Server luôn kiểm tra lại mọi quyền và mọi dữ liệu đầu vào.**
 
@@ -107,6 +108,7 @@ Vai trò: `*` là mọi người (kể cả chưa đăng nhập), `đăng nhập
 | `UNSUBSCRIBE` | đăng nhập |
 | `PLACE_BID` | BIDDER |
 | `SET_AUTO_BID` | BIDDER |
+| `PAY_AUCTION` | BIDDER là người thắng |
 | `LIST_USERS` | ADMIN |
 | `SET_USER_ACTIVE` | ADMIN |
 
@@ -135,7 +137,7 @@ Không cho tự đăng ký `ADMIN`: gửi `role = ADMIN` thì trả `VALIDATION_
 | Response `data` | `token` (string), `userId` (long), `username` (string), `role` |
 | Lỗi có thể có | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED` |
 
-Đây chính là `UserSession` của client.
+Khớp `UserSession` của client.
 
 ### 4.4. `LOGOUT`
 
@@ -196,7 +198,7 @@ Mỗi phần tử của `bids` (khớp `BidEntry`): `bidder` (string), `amount` 
 | Response `data` | `{"auctionId":100}` |
 | Lỗi có thể có | `NOT_AUTHORIZED`, `VALIDATION_ERROR` |
 
-Server kiểm tra `endTime` phải sau `startTime` và sau thời điểm hiện tại. Trạng thái ban đầu là `OPEN`; đến `startTime` server tự chuyển sang `RUNNING` và đẩy event `AUCTION_STARTED`.
+Server kiểm tra `endTime` sau `startTime` và sau thời điểm hiện tại. Trạng thái ban đầu là `OPEN`; đến `startTime` server tự chuyển sang `RUNNING` và đẩy event `AUCTION_STARTED`.
 
 ### 4.8. `UPDATE_AUCTION`
 
@@ -236,14 +238,12 @@ Sau `SUBSCRIBE`, server đẩy event của phiên đó tới client này cho đ�
 | Response `data` | Chi tiết phiên sau khi đặt (như `GET_AUCTION`) |
 | Lỗi có thể có | `BID_TOO_LOW`, `AUCTION_CLOSED`, `AUCTION_NOT_FOUND`, `NOT_AUTHORIZED`, `VALIDATION_ERROR` |
 
-Quy tắc, kiểm tra trong cùng một khối khóa của phiên (xem mục 7):
+Quy tắc, kiểm tra trong cùng một khối khóa của phiên (mục 7):
 
 1. Phiên phải ở `RUNNING` và chưa quá `endTime`, nếu không trả `AUCTION_CLOSED`.
-2. `amount` phải **lớn hơn giá hiện tại và đạt bước giá tối thiểu**, nếu không trả `BID_TOO_LOW` kèm `data.minBid`.
-3. Người đang dẫn đầu không đặt tiếp được lên chính mình (trả `VALIDATION_ERROR`).
-4. Seller không đặt giá được phiên của chính mình.
-
-Bước giá tối thiểu: **100.000 đ** (hằng số của server, mock của client đang dùng cùng giá trị).
+2. `amount` phải lớn hơn giá hiện tại và đạt bước giá tối thiểu, nếu không trả `BID_TOO_LOW` kèm `data.minBid`. Phiên chưa có bid thì giá tối thiểu là giá khởi điểm.
+3. Người đang dẫn đầu không đặt tiếp được lên chính mình (`VALIDATION_ERROR`).
+4. Seller không đặt giá được phiên của chính mình (`NOT_AUTHORIZED`).
 
 ### 4.12. `SET_AUTO_BID` (tính năng nâng cao)
 
@@ -253,9 +253,19 @@ Bước giá tối thiểu: **100.000 đ** (hằng số của server, mock của
 | Response `data` | `{}` |
 | Lỗi có thể có | `AUCTION_CLOSED`, `VALIDATION_ERROR` |
 
-Server tự đặt giá thay người dùng khi có bid mới của người khác, không vượt `maxBid`. Mỗi lượt auto-bid cũng sinh event `NEW_BID` như bid thường (thêm `auto: true`).
+Server tự đặt giá thay người dùng khi có bid mới của người khác, không vượt `maxBid`. Khi nhiều auto-bid cùng đủ điều kiện, ưu tiên người đăng ký sớm hơn. Mỗi lượt auto-bid cũng sinh event `NEW_BID` như bid thường (thêm `auto: true`).
 
-### 4.13. `LIST_USERS`
+### 4.13. `PAY_AUCTION`
+
+| | |
+|---|---|
+| Request `data` | `auctionId` |
+| Response `data` | `{}` |
+| Lỗi có thể có | `NOT_AUTHORIZED`, `AUCTION_NOT_FOUND`, `INVALID_STATE` |
+
+Chỉ người thắng của phiên `FINISHED` mới thanh toán được. Thành công thì phiên sang `PAID`.
+
+### 4.14. `LIST_USERS`
 
 | | |
 |---|---|
@@ -264,7 +274,7 @@ Server tự đặt giá thay người dùng khi có bid mới của người kh�
 
 Mỗi phần tử (khớp `UserInfo`): `id` (long), `username`, `email`, `role`, `active` (boolean).
 
-### 4.14. `SET_USER_ACTIVE`
+### 4.15. `SET_USER_ACTIVE`
 
 | | |
 |---|---|
@@ -278,9 +288,9 @@ Không cho khóa tài khoản `ADMIN` (trả `VALIDATION_ERROR`).
 
 | Mã | Ý nghĩa |
 |---|---|
-| `INVALID_JSON` | Dòng nhận được không phải JSON hợp lệ hoặc thiếu trường bắt buộc |
+| `INVALID_JSON` | Dòng nhận được không phải JSON hợp lệ, quá dài, hoặc thiếu trường bắt buộc |
 | `UNKNOWN_ACTION` | `action` không tồn tại |
-| `VALIDATION_ERROR` | Dữ liệu sai (rỗng, âm, sai định dạng, quy tắc nghiệp vụ) |
+| `VALIDATION_ERROR` | Dữ liệu sai (rỗng, âm, sai định dạng, vi phạm quy tắc nghiệp vụ) |
 | `INVALID_CREDENTIALS` | Sai tên đăng nhập hoặc mật khẩu |
 | `ACCOUNT_LOCKED` | Tài khoản bị khóa |
 | `USERNAME_TAKEN` | Tên đăng nhập đã tồn tại |
@@ -300,7 +310,7 @@ Event chỉ gửi tới client đã `SUBSCRIBE` phiên liên quan. Tất cả c�
 |---|---|---|
 | `NEW_BID` | Có bid hợp lệ mới | `auctionId`, `amount`, `bidder`, `time`, `endTime` (đã tính gia hạn), `auto` (tùy chọn) |
 | `AUCTION_STARTED` | `OPEN → RUNNING` | `auctionId`, `endTime` |
-| `AUCTION_EXTENDED` | Chống bid phút chót (anti-sniping) gia hạn phiên | `auctionId`, `endTime` (mới) |
+| `AUCTION_EXTENDED` | Anti-sniping gia hạn phiên | `auctionId`, `endTime` (mới) |
 | `AUCTION_ENDED` | `RUNNING → FINISHED` | `auctionId`, `winner` (null nếu không có bid), `finalPrice` |
 | `AUCTION_CANCELED` | Phiên bị hủy | `auctionId` |
 
@@ -331,17 +341,24 @@ S -> {"id":"4","status":"ERROR","code":"BID_TOO_LOW","message":"Giá phải từ
 
 C -> {"id":"5","action":"PLACE_BID","token":"t-9f2","data":{"auctionId":5,"amount":19000000}}
 S -> {"id":"5","status":"OK","data":{ ...chi tiết phiên sau khi đặt... }}
-S -> {"event":"NEW_BID","data":{"auctionId":5,"amount":19000000,"bidder":"an","time":"2026-11-20T19:59:50","endTime":"2026-11-20T20:00:40"}}
-S -> {"event":"AUCTION_EXTENDED","data":{"auctionId":5,"endTime":"2026-11-20T20:00:40"}}
+S -> {"event":"NEW_BID","data":{"auctionId":5,"amount":19000000,"bidder":"an","time":"2026-11-20T19:59:50","endTime":"2026-11-20T20:00:20"}}
+S -> {"event":"AUCTION_EXTENDED","data":{"auctionId":5,"endTime":"2026-11-20T20:00:20"}}
 ```
 
-## 9. Điểm còn mở (cần Khôi, Trường, Đăng chốt)
+## 9. Các quyết định đã chốt trong v1.0
 
-| Câu hỏi | Đề xuất tạm |
+| Hạng mục | Giá trị |
 |---|---|
-| Cổng mặc định | `9999`, đọc từ cấu hình |
+| Cổng mặc định | `9999` |
 | Bước giá tối thiểu | 100.000 đ, hằng số trong server |
-| Anti-sniping: X giây cuối, gia hạn Y giây | X = 30, Y = 60, cấu hình được |
-| Thanh toán (`PAID`) có action riêng không | Thêm `PAY_AUCTION` (BIDDER là người thắng) ở phiên bản sau |
-| Token hết hạn theo thời gian không | Chưa, chỉ hết khi `LOGOUT` hoặc đóng kết nối |
-| Người dẫn đầu có đặt tiếp được không | Không |
+| Anti-sniping | Có bid trong 30 giây cuối thì gia hạn thêm 60 giây (cấu hình được) |
+| Thanh toán | Có action `PAY_AUCTION` |
+| Hết hạn token | Không theo thời gian, chỉ khi `LOGOUT` hoặc đóng kết nối |
+| Người dẫn đầu đặt tiếp | Không được |
+| Độ dài tối đa một dòng | 64 KB |
+
+## 10. Lịch sử thay đổi
+
+| Phiên bản | Nội dung |
+|---|---|
+| 1.0 | Bản chính thức đầu tiên |

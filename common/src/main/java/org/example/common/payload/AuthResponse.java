@@ -1,6 +1,6 @@
-package payload;
+package org.example.common.payload;
 
-import model.User;
+import org.example.common.model.User;
 import java.io.Serializable;
 
 public class AuthResponse implements Serializable {

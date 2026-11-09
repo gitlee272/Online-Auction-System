@@ -1,4 +1,4 @@
-package payload;
+package org.example.common.payload;
 
 import java.io.Serializable;
 

@@ -14,7 +14,15 @@
     <artifactId>client</artifactId>
     <name>client</name>
 
+    <!-- Đã thêm properties để chỉ định JDK 21 và JavaFX 21 -->
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <javafx.version>21.0.1</javafx.version>
+    </properties>
+
     <dependencies>
+        <!-- Tham chiếu đến module common -->
         <dependency>
             <groupId>org.example</groupId>
             <artifactId>common</artifactId>
@@ -33,9 +41,17 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- Đã sửa lại JUnit 5 đầy đủ version -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

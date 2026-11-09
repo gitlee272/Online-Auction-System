@@ -9,6 +9,7 @@ import org.example.client.model.BidEntry;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import org.example.client.model.NewAuctionRequest;
+import org.example.client.model.UserInfo;
 
 /** Cài đặt giả: trả dữ liệu cứng, giả lập độ trễ mạng. Dùng khi server chưa xong. */
 public class MockServerApi implements ServerApi {
@@ -113,5 +114,53 @@ public class MockServerApi implements ServerApi {
                     }
                     return 100L;
                 });
+    }
+    private final List<UserInfo> mockUsers = new ArrayList<>(List.of(
+            new UserInfo(1, "admin1", "admin1@mail.com", "ADMIN", true),
+            new UserInfo(2, "seller1", "seller1@mail.com", "SELLER", true),
+            new UserInfo(3, "an", "an@mail.com", "BIDDER", true),
+            new UserInfo(4, "binh", "binh@mail.com", "BIDDER", false)));
+
+    private static void requireAdmin() {
+        if (!"ADMIN".equals(org.example.client.util.SessionContext.get().role())) {
+            throw new ApiException("NOT_AUTHORIZED", "Chỉ Admin mới được thực hiện");
+        }
+    }
+
+    @Override
+    public CompletableFuture<List<UserInfo>> listUsers() {
+        return CompletableFuture.supplyAsync(() -> {
+            sleep();
+            requireAdmin();
+            synchronized (mockUsers) {
+                return List.copyOf(mockUsers);
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> setUserActive(long userId, boolean active) {
+        return CompletableFuture.supplyAsync(() -> {
+            sleep();
+            requireAdmin();
+            synchronized (mockUsers) {
+                for (int i = 0; i < mockUsers.size(); i++) {
+                    UserInfo u = mockUsers.get(i);
+                    if (u.id() == userId) {
+                        mockUsers.set(i, new UserInfo(u.id(), u.username(), u.email(), u.role(), active));
+                    }
+                }
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> cancelAuction(long auctionId) {
+        return CompletableFuture.supplyAsync(() -> {
+            sleep();
+            requireAdmin();
+            return null;
+        });
     }
 }

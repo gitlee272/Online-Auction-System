@@ -6,6 +6,7 @@ import org.example.client.model.AuctionSummary;
 import org.example.client.model.UserSession;
 import org.example.client.model.AuctionDetail;
 import org.example.client.model.NewAuctionRequest;
+import org.example.client.model.UserInfo;
 /**
  * Hợp đồng giữa giao diện và server. Controller chỉ gọi interface này, nên đổi từ
  * MockServerApi sang SocketServerApi mà không phải sửa controller.
@@ -25,4 +26,12 @@ public interface ServerApi {
     CompletableFuture<AuctionDetail> placeBid(long auctionId, long amount);
     /** Tạo phiên đấu giá mới (chỉ Seller). Trả về id phiên. */
     CompletableFuture<Long> createAuction(NewAuctionRequest request);
+    /** Danh sách người dùng (chỉ Admin). */
+    CompletableFuture<List<UserInfo>> listUsers();
+
+    /** Khóa hoặc mở khóa người dùng (chỉ Admin). */
+    CompletableFuture<Void> setUserActive(long userId, boolean active);
+
+    /** Hủy phiên đấu giá (Admin hoặc Seller chủ phiên). */
+    CompletableFuture<Void> cancelAuction(long auctionId);
 }

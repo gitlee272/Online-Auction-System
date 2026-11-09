@@ -1,6 +1,6 @@
 package dao;
 
-import model.User;
+import org.example.common.exception.model.User;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

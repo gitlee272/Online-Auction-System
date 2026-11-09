@@ -1,4 +1,4 @@
-package model;
+package org.example.common.model;
 
 public class Admin extends User {
     public Admin() {

@@ -1,4 +1,4 @@
-package model;
+package org.example.common.model;
 
 public class Bidder extends User {
     private double balance; // Số dư tài khoản để đặt giá

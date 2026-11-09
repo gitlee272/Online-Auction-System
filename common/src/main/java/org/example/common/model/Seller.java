@@ -1,4 +1,4 @@
-package model;
+package org.example.common.model;
 
 public class Seller extends User {
     private String rating; // Đánh giá độ uy tín người bán

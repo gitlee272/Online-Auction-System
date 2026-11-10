@@ -10,6 +10,7 @@ public class ClientHandler implements Runnable {
     private final SubscriberRegistry registry;
     private PrintWriter out;
     private BufferedReader in;
+    private final RequestDispatcher dispatcher = new RequestDispatcher();
 
     public ClientHandler(Socket socket, SubscriberRegistry registry) {
         this.socket = socket;
@@ -28,7 +29,16 @@ public class ClientHandler implements Runnable {
             // Lắng nghe dữ liệu JSON từ Client gửi lên
             while ((jsonRequest = in.readLine()) != null) {
                 System.out.println("Received: " + jsonRequest);
-                
+                // Lắng nghe dữ liệu JSON từ Client gửi lên
+while ((jsonRequest = in.readLine()) != null) {
+    System.out.println("Received from client: " + jsonRequest);
+
+    // Chuyển chuỗi thô cho Dispatcher phân tích và nhận lại chuỗi kết quả
+    String jsonResponse = dispatcher.dispatch(jsonRequest, this);
+
+    // Gửi trả kết quả về cho Client qua đường truyền mạng
+    out.println(jsonResponse);
+}
                 // TODO (Phần tiếp theo cậu sẽ code):
                 // 1. Chuyển chuỗi jsonRequest vào RequestDispatcher
                 // 2. Dispatcher gọi đến Service để lấy data/ghi db

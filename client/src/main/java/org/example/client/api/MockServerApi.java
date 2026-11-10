@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import org.example.client.model.NewAuctionRequest;
 import org.example.client.model.UserInfo;
+import java.util.function.Consumer;
+import org.example.client.model.AuctionEvent;
 
 /** Cài đặt giả: trả dữ liệu cứng, giả lập độ trễ mạng. Dùng khi server chưa xong. */
 public class MockServerApi implements ServerApi {
@@ -162,5 +164,19 @@ public class MockServerApi implements ServerApi {
             requireAdmin();
             return null;
         });
+    }
+    @Override
+    public CompletableFuture<Void> subscribe(long auctionId) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> unsubscribe(long auctionId) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public void setEventListener(Consumer<AuctionEvent> listener) {
+        // Mock không có server đẩy event.
     }
 }

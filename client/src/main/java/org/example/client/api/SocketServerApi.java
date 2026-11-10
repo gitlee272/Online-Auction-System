@@ -16,15 +16,15 @@ import org.example.client.model.UserSession;
 import org.example.client.util.SessionContext;
 import org.example.common.protocol.Action;
 import org.example.common.protocol.Response;
+import java.util.function.Consumer;
+import org.example.client.model.AuctionEvent;
+import org.example.common.protocol.Event;
 
 /** Cài đặt ServerApi nói chuyện với server thật theo docs/protocol.md. */
 public class SocketServerApi implements ServerApi {
 
     private final ServerConnection connection;
 
-    public SocketServerApi(ServerConnection connection) {
-        this.connection = connection;
-    }
 
     public ServerConnection connection() {
         return connection;
@@ -172,5 +172,57 @@ public class SocketServerApi implements ServerApi {
                 o.get("status").getAsString(),
                 LocalDateTime.parse(o.get("endTime").getAsString()),
                 bids);
+    }
+    private volatile Consumer<AuctionEvent> auctionListener = e -> {};
+
+    public SocketServerApi(ServerConnection connection) {
+        this.connection = connection;
+        connection.setEventListener(this::onServerEvent);
+    }
+
+    @Override
+    public CompletableFuture<Void> subscribe(long auctionId) {
+        JsonObject d = new JsonObject();
+        d.addProperty("auctionId", auctionId);
+        return call(Action.SUBSCRIBE, d, true).thenApply(r -> null);
+    }
+
+    @Override
+    public CompletableFuture<Void> unsubscribe(long auctionId) {
+        JsonObject d = new JsonObject();
+        d.addProperty("auctionId", auctionId);
+        return call(Action.UNSUBSCRIBE, d, true).thenApply(r -> null);
+    }
+
+    @Override
+    public void setEventListener(Consumer<AuctionEvent> listener) {
+        this.auctionListener = listener == null ? e -> {} : listener;
+    }
+
+    private void onServerEvent(Event event) {
+        if (event.getEvent() == null || event.getData() == null || !event.getData().isJsonObject()) {
+            return;
+        }
+        JsonObject o = event.getData().getAsJsonObject();
+        String end = text(o, "endTime");
+        auctionListener.accept(new AuctionEvent(
+                event.getEvent().name(),
+                o.get("auctionId").getAsLong(),
+                number(o, "amount"),
+                text(o, "bidder"),
+                text(o, "time"),
+                end == null ? null : LocalDateTime.parse(end),
+                text(o, "winner"),
+                number(o, "finalPrice")));
+    }
+
+    private static String text(JsonObject o, String key) {
+        JsonElement e = o.get(key);
+        return e == null || e.isJsonNull() ? null : e.getAsString();
+    }
+
+    private static Long number(JsonObject o, String key) {
+        JsonElement e = o.get(key);
+        return e == null || e.isJsonNull() ? null : e.getAsLong();
     }
 }

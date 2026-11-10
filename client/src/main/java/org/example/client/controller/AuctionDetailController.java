@@ -20,6 +20,8 @@ import org.example.client.model.AuctionDetail;
 import org.example.client.model.BidEntry;
 import org.example.client.util.SceneNavigator;
 import org.example.client.util.SelectedAuction;
+import org.example.client.model.AuctionEvent;
+
 
 /** Màn hình chi tiết phiên: thông tin, đồng hồ đếm ngược, đặt giá, lịch sử. */
 public class AuctionDetailController implements Initializable {
@@ -44,6 +46,8 @@ public class AuctionDetailController implements Initializable {
         clock = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> tick()));
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
+        ApiProvider.get().setEventListener(this::onEvent);
+        ApiProvider.get().subscribe(SelectedAuction.get());
         load();
     }
 
@@ -121,7 +125,9 @@ public class AuctionDetailController implements Initializable {
 
     @FXML
     private void onBack() {
-        clock.stop();   // dừng đồng hồ khi rời màn hình
+        clock.stop();
+        ApiProvider.get().unsubscribe(SelectedAuction.get());
+        ApiProvider.get().setEventListener(null);
         SceneNavigator.goTo("main.fxml");
     }
 
@@ -130,5 +136,38 @@ public class AuctionDetailController implements Initializable {
                 ? error.getCause()
                 : error;
         return cause instanceof ApiException ? cause.getMessage() : "Không thể kết nối tới máy chủ";
+    }
+    /** Chạy ở thread nhận socket, nên mọi thao tác giao diện phải qua Platform.runLater. */
+    private void onEvent(AuctionEvent e) {
+        if (e.auctionId() != SelectedAuction.get()) {
+            return;
+        }
+        Platform.runLater(() -> {
+            switch (e.type()) {
+                case "NEW_BID" -> {
+                    messageLabel.setText("Có giá mới từ " + e.bidder());
+                    load();   // lấy lại chi tiết để giá, người dẫn đầu, lịch sử cùng đúng
+                }
+                case "AUCTION_EXTENDED" -> {
+                    endTime = e.endTime();
+                    messageLabel.setText("Phiên được gia hạn");
+                    tick();
+                }
+                case "AUCTION_ENDED" -> {
+                    statusLabel.setText("Trạng thái: FINISHED");
+                    countdownLabel.setText("Đã kết thúc");
+                    bidButton.setDisable(true);
+                    messageLabel.setText(e.winner() == null
+                            ? "Phiên kết thúc, không có người thắng"
+                            : "Người thắng: " + e.winner() + " với " + AuctionDetail.money(e.finalPrice()));
+                }
+                case "AUCTION_CANCELED" -> {
+                    statusLabel.setText("Trạng thái: CANCELED");
+                    countdownLabel.setText("Đã hủy");
+                    bidButton.setDisable(true);
+                }
+                default -> { }
+            }
+        });
     }
 }

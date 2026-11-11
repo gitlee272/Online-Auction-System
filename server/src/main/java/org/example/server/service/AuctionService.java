@@ -3,20 +3,25 @@ package org.example.server.service;
 import org.example.exception.AuctionClosedException;
 import org.example.exception.AuctionNotFoundException;
 import org.example.exception.BidTooLowException;
+import org.example.exception.InvalidBidException;
 import org.example.model.Auction;
 import org.example.model.BidTransaction;
+import org.example.model.Item;
 import org.example.server.dao.AuctionDAO;
 import org.example.server.dao.BidDAO;
+import org.example.server.dao.ItemDAO;
 
 import java.time.LocalDateTime;
 
 public class AuctionService {
     private final AuctionDAO auctionDAO;
     private final BidDAO bidDAO;
+    private final ItemDAO itemDAO;
 
     public AuctionService() {
         this.auctionDAO = new AuctionDAO();
         this.bidDAO = new BidDAO();
+        this.itemDAO = new ItemDAO();
     }
 
     // Sử dụng synchronized để đảm bảo an toàn luồng (thread-safe) khi nhiều user đặt giá đồng thời
@@ -35,13 +40,24 @@ public class AuctionService {
             throw new AuctionClosedException(auctionId);
         }
 
-        // 3. Kiểm tra mức giá đặt phải cao hơn giá cao nhất hiện tại
+        // 3. Kiểm tra không cho phép người đang dẫn đầu tự đặt giá đè lên chính mình
+        if (auction.getWinnerId() != null && auction.getWinnerId() == bidderId) {
+            throw new InvalidBidException("Ban dang la nguoi giu muc gia cao nhat cua phien nay roi!");
+        }
+
+        // 4. Kiểm tra không cho phép người bán (Seller) tự trả giá ảo cho sản phẩm của mình
+        Item item = itemDAO.getItemById(auction.getItemId());
+        if (item != null && item.getSellerId() == bidderId) {
+            throw new InvalidBidException("Nguoi ban khong duoc phep tu dat gia cho vat pham cua chinh minh!");
+        }
+
+        // 5. Kiểm tra mức giá đặt phải cao hơn giá cao nhất hiện tại
         double currentHighest = auction.getCurrentHighestBid();
         if (bidAmount <= currentHighest) {
             throw new BidTooLowException(currentHighest, bidAmount);
         }
 
-        // 4. Tính năng Anti-Sniping (Chống bắn tỉa phút chót)
+        // 6. Tính năng Anti-Sniping (Chống bắn tỉa phút chót)
         // Nếu đặt giá trong vòng 5 phút cuối, tự động gia hạn thêm 5 phút
         if (now.plusMinutes(5).isAfter(auction.getEndTime())) {
             LocalDateTime newEndTime = auction.getEndTime().plusMinutes(5);
@@ -50,7 +66,7 @@ public class AuctionService {
             System.out.println("[AuctionService] Anti-sniping kích hoạt: Gia hạn phiên #" + auctionId + " đến " + newEndTime);
         }
 
-        // 5. Lưu lịch sử đặt giá vào bảng bids
+        // 7. Lưu lịch sử đặt giá vào bảng bids
         BidTransaction newBid = new BidTransaction();
         newBid.setAuctionId(auctionId);
         newBid.setBidderId(bidderId);
@@ -59,11 +75,11 @@ public class AuctionService {
 
         boolean isBidSaved = bidDAO.addBid(newBid);
 
-        // 6. Cập nhật lại giá cao nhất và người giữ giá cao nhất trong bảng auctions
+        // 8. Cập nhật lại giá cao nhất và người giữ giá cao nhất trong bảng auctions
         if (isBidSaved) {
             boolean updated = auctionDAO.updateHighestBid(auctionId, bidAmount, bidderId);
 
-            // 7. Xử lý cơ chế Auto-bid (Nếu có người đặt giá vượt hạn mức tự động của người khác)
+            // 9. Xử lý cơ chế Auto-bid (Nếu có người đặt giá vượt hạn mức tự động của người khác)
             processAutoBid(auctionId, bidAmount);
 
             return updated;
